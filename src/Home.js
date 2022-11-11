@@ -104,56 +104,14 @@ class Home extends Component{
 		return hm;
 	}
 
-	// formatDataInput(json) {
-	// 	var self = this;
-	// 	var listMatch = json.data;
-	// 	var dateNow = this.state.dateNow;
-	// 	var arr_fixture = new Array();
-	// 	var arr_result = new Array();
-	// 	if (typeof listMatch !== "undefined") {
-	// 		Object.keys(listMatch).map(function(key, index) {
-	// 			const { league_detail, data } = listMatch[key];
-	// 			var a = Object.keys(data).map(function(k, i) {
-	// 				let date1 = new Date(k);
-	// 				let date2 = new Date(dateNow);
-	// 				var tem = {
-	// 					datetime: k,
-	// 					result: data[k].data
-	// 				}
-
-	// 				if (date1 > date2){
-	// 					arr_fixture.push(tem);
-	// 				}else if (date1 <= date2){
-	// 					arr_result.push(tem);
-	// 				}
-	// 			});
-	// 		});
-
-	// 		self.setState({
-	// 			arr_fixture: arr_fixture, 
-	// 			arr_result: arr_result, 
-	// 		});
-	// 	}else{
-	// 		self.setState({
-	// 			arr_fixture: null, 
-	// 			arr_result: null 
-	// 		});
-	// 	}
-	// }
-
 	renderHTML() {
-		var self = this;
 		var listMatch = this.state.totalMatch.data;
 		var listStanding = this.state.totalStanding.data;
 		var dateNow = this.state.dateNow;
-		var arr_fixture = new Array();
-		var arr_result = new Array();
 
 		if (typeof listMatch !== "undefined") {
 			return Object.keys(listMatch).map(function(key, index) {
 				const { league_detail, data } = listMatch[key];
-				var round_fixture = Object.entries(data).length + 2;
-				var round_result = Object.entries(data).length + 1;
 
 				return (
 					
@@ -398,12 +356,14 @@ class BoxLichDau extends Component{
 
 	renderMatch(type){
 		var self = this;
-		if (type == "fixture"){
-			var match_data = localStorage.getItem("arr_fixture");
-			var date = localStorage.getItem("date_fixture");
+		var match_data = null;
+		var date = null;
+		if (type === "fixture"){
+			match_data = localStorage.getItem("arr_fixture");
+			date = localStorage.getItem("date_fixture");
 		}else{
-			var match_data = localStorage.getItem("arr_result");
-			var date = localStorage.getItem("date_result");
+			match_data = localStorage.getItem("arr_result");
+			date = localStorage.getItem("date_result");
 		}
 
 		var json = JSON.parse(match_data);
@@ -411,8 +371,7 @@ class BoxLichDau extends Component{
 		let matchDay = json[index].result.data;
 
 		return matchDay.map(function(element, index) {
-			var key_null = Math.floor(Math.random() * 200);
-			const { fixture_id, home_team, away_team, score, event_timestamp} = element;
+			const { home_team, away_team, event_timestamp} = element;
 			var teamIdHome = home_team.team_id;
 			var teamIdAway = away_team.team_id;
 			var teamNameHome = home_team.team_name;
@@ -448,8 +407,8 @@ class BoxLichDau extends Component{
 
 	renderFixture(fixture_data, date_choose) {
 		var self = this;
-		var arr_fixture = new Array();
-		var htmlFixture = Object.keys(fixture_data).map(function(k, i) {
+		var arr_fixture = [];
+		Object.keys(fixture_data).map(function(k, i) {
 			let d1 = Date.parse(self.formatYYMMDD(k));
 			let d2 = Date.parse(date_choose);
 
@@ -461,31 +420,32 @@ class BoxLichDau extends Component{
 				arr_fixture.push(t)
 			}
 		});
+		if (arr_fixture.length > 0 ) {
+			const { date, result } = arr_fixture[0];
+			let round_int = (typeof result.data[0].round_int != "undefined") ? result.data[0].round_int: "";
+			let round = (typeof result.data[0].round_int != "undefined") ? "Vòng " + result.data[0].round_int: "";
 
-		const { date, result } = arr_fixture[0];
-		let round_int = (typeof result.data[0].round_int != "undefined") ? result.data[0].round_int: "";
-		let round = (typeof result.data[0].round_int != "undefined") ? "Vòng " + result.data[0].round_int: "";
+			var dow = self.getDayOfWeek(date);
+			var dmy = self.formatDDMMYY(date);
+			var key_null = Math.floor(Math.random() * 200);
+			localStorage.setItem("arr_fixture", JSON.stringify(arr_fixture));
+			localStorage.setItem("date_fixture", date);
+			localStorage.setItem("round_fixture", JSON.stringify({round_int, round}));
 
-		var dow = self.getDayOfWeek(date);
-		var dmy = self.formatDDMMYY(date);
-		var key_null = Math.floor(Math.random() * 200);
-		localStorage.setItem("arr_fixture", JSON.stringify(arr_fixture));
-		localStorage.setItem("date_fixture", date);
-		localStorage.setItem("round_fixture", JSON.stringify({round_int, round}));
-
-		return (
-			<div key={key_null} className="select-date" data-leagueid="league_id" data-type="lichdau">
-                <Link to="/" className="choose-date left" data-action="prev">
-                	<span className="prev disable"></span>
-                </Link>
-                <Link to="/" className="choose-date right" data-action="next">
-                	<span className="next"></span>
-                </Link>
-                <span className="date" data-index="0" id="lichdau-league_id">
-                	<strong>{ dow }</strong> { dmy }
-                </span>
-            </div>
-		)
+			return (
+				<div key={key_null} className="select-date" data-leagueid="league_id" data-type="lichdau">
+	                <Link to="/" className="choose-date left" data-action="prev">
+	                	<span className="prev disable"></span>
+	                </Link>
+	                <Link to="/" className="choose-date right" data-action="next">
+	                	<span className="next"></span>
+	                </Link>
+	                <span className="date" data-index="0" id="lichdau-league_id">
+	                	<strong>{ dow }</strong> { dmy }
+	                </span>
+	            </div>
+			)
+		}
 	}
 
 	getRoundLeague(){
@@ -586,9 +546,8 @@ class BoxKetQua extends Component{
 
 	renderResult(result_data, date_choose) {
 		var self = this;
-		var arr_result = new Array();
-		var _arr_result = null;
-		var htmlFixture = Object.keys(result_data).map(function(k, i) {
+		var arr_result = [];
+		Object.keys(result_data).map(function(k, i) {
 			let d1 = Date.parse(self.formatYYMMDD(k));
 			let d2 = Date.parse(date_choose);
 			
@@ -601,7 +560,7 @@ class BoxKetQua extends Component{
 			}
 		});
 
-		_arr_result = arr_result.sort(function(a, b) { var c = new Date(a.date); var d = new Date(b.date); return c - d; });
+		arr_result.sort(function(a, b) { var c = new Date(a.date); var d = new Date(b.date); return c - d; });
 		const { date, result } = arr_result[arr_result.length - 1];
 		var dow = self.getDayOfWeek(date);
 		var dmy = self.formatDDMMYY(date);
@@ -628,13 +587,14 @@ class BoxKetQua extends Component{
 	}
 
 	renderMatch(type){
-		var self = this;
-		if (type == "fixture"){
-			var match_data = localStorage.getItem("arr_fixture");
-			var date = localStorage.getItem("date_fixture");
+		let match_data = null;
+		let date = null;
+		if (type === "fixture"){
+			match_data = localStorage.getItem("arr_fixture");
+			date = localStorage.getItem("date_fixture");
 		}else{
-			var match_data = localStorage.getItem("arr_result");
-			var date = localStorage.getItem("date_result");
+			match_data = localStorage.getItem("arr_result");
+			date = localStorage.getItem("date_result");
 		}
 
 		var json = JSON.parse(match_data);
@@ -642,15 +602,13 @@ class BoxKetQua extends Component{
 		let matchDay = json[index].result.data;
 
 		return matchDay.map(function(element, index) {
-			var key_null = Math.floor(Math.random() * 200);
-			const { fixture_id, home_team, away_team, score, event_timestamp} = element;
+			const { home_team, away_team, score} = element;
 			var teamIdHome = home_team.team_id;
 			var teamIdAway = away_team.team_id;
 			var teamNameHome = home_team.team_name;
 			var teamNameAway = away_team.team_name;
 			var teamLogoHome = home_team.logo;
 			var teamLogoAway = away_team.logo;
-			var time = self.getTimeFromDate(event_timestamp);
 			var clsName = `wvd teamid-${ teamIdHome } teamid-${ teamIdAway }`;
 			var halftime = score.halftime;
 			var fulltime = score.fulltime;
@@ -665,8 +623,8 @@ class BoxKetQua extends Component{
 			                </span>
 			            </div>
 			            <div className="ti-so">
-			                <span className="so">1 - 2</span>
-			                <span className="text-hiep">H1: 0-2</span>
+			                <span className="so">{fulltime}</span>
+			                <span className="text-hiep">H1: { halftime }</span>
 			            </div>
 			            <div className="doibong doi-2 flexbox">
 			                <span className="avatar">
@@ -712,8 +670,7 @@ class BoxKetQua extends Component{
 class BoxBXH extends Component{
 	renderStanding(data) {
 		return data.map(function(element, index){
-			console.log(element);
-			const { team_id, rank, team_name, all, goals_diff, points, logo} = element;
+			const { rank, team_name, all, goals_diff, points, logo} = element;
 			return (
 				<tr key={index}>
 			        <td className="td-stt">{ rank }</td>
